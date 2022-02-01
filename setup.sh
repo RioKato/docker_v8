@@ -6,6 +6,13 @@ cd $SCRIPT_DIR
 export PATH=$SCRIPT_DIR/depot_tools:$PATH
 export DEPOT_TOOLS_UPDATE=0
 
+if [ -z "$DEBUG" ]
+then
+  BUILD_TYPE=release
+else
+  BUILD_TYPE=debug
+fi
+
 download() {
   apt update
   apt install -y git curl python3
@@ -17,7 +24,7 @@ download() {
   popd
 }
 
-update() {
+pull() {
   pushd depot_tools
   git pull
   popd
@@ -53,22 +60,21 @@ build() {
   gclient sync
   docker_conf
   build/install-build-deps.sh
-  # tools/dev/gm.py x64.release
-  tools/dev/v8gen.py x64.release
-  ninja -C out.gn/x64.release d8
+  # tools/dev/gm.py x64.$BUILD_TYPE
+  tools/dev/v8gen.py x64.$BUILD_TYPE
+  ninja -C out.gn/x64.$BUILD_TYPE d8
   popd
 }
 
 rebuild() {
   pushd v8
-  ninja -C out.gn/x64.release d8
+  ninja -C out.gn/x64.$BUILD_TYPE d8
   popd
 }
 
-gen_cdb() {
+cdb() {
   pushd v8
-  tools/dev/v8gen.py x64.release
-  ninja -C out.gn/x64.release d8 -t compdb cc cxx > compile_commands.json
+  ninja -C out.gn/x64.$BUILD_TYPE d8 -t compdb cc cxx > compile_commands.json
   popd
 }
 
@@ -78,15 +84,15 @@ run_docker() {
   docker run -it --rm -m 8g -v `pwd`:/root $IMAGE
 }
 
-while getopts duc:brgi: OPT
+while getopts dpc:brgi: OPT
 do
   case $OPT in
     d) download ;;
-    u) update ;;
+    u) pull ;;
     c) checkout $OPTARG ;;
     b) build ;;
     r) rebuild ;;
-    g) gen_cdb ;;
+    g) cdb ;;
     i) run_docker $OPTARG ;;
     \?) exit 1 ;;
   esac
