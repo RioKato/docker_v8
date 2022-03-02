@@ -31,3 +31,7 @@ fun()
 %DebugPrint(hoo);
 %SystemBreak();
 ```
+## chrome
+```console
+root@pentest:/opt/google/chrome# ./chrome --js-flags '--allow-natives-syntax' --headless --no-sandbox --disable-gpu http://www.google.com
+```
