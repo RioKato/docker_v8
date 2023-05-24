@@ -24,3 +24,5 @@ EOF
 
 COPY --chmod=755 build.sh /work
 COPY --chmod=755 checkout.sh /work
+
+ENV PATH $PATH:/work/v8/out.gn/x64.release:/work/v8/out.gn/x64.debug
