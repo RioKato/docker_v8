@@ -1,5 +1,14 @@
 #!/bin/sh
 
+set -e
+
+if [ -z "$DEBUG" ]
+then
+  BUILD_TYPE=release
+else
+  BUILD_TYPE=debug
+fi
+
 cd /work/v8
 COMMIT=$1
 git checkout $COMMIT

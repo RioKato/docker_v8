@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 if [ -z "$DEBUG" ]
 then
   BUILD_TYPE=release
