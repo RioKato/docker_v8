@@ -19,6 +19,6 @@ EOF
 RUN fetch v8
 
 COPY --chmod=755 build.sh /work
-COPY --chmod=755 checkout.sh /work
+COPY --chmod=755 checkout-build.sh /work
 
 ENV PATH $PATH
