@@ -25,6 +25,7 @@ RUN <<EOF
   fetch v8
 
   if [ -n "$COMMIT" ]
+  then
     cd /work/v8
     git checkout $COMMIT
     COMMIT_DATE=$(git show -s -n 1 --format=%ci)
@@ -39,6 +40,7 @@ RUN <<EOF
   cd /work/v8
 
   if [ -n "$COMMIT" ]
+  then
     gclient sync -D --force --reset
   else
     gclient sync
