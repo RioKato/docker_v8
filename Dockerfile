@@ -1,6 +1,9 @@
 FROM ubuntu:20.04
+ARG BUILD_TYPE="release"
+ARG COMMIT
+
 WORKDIR /work
-ENV PATH $PATH:/work/depot_tools:/work/v8/out.gn/x64.release:/work/v8/out.gn/x64.debug
+ENV PATH $PATH:/work/depot_tools
 
 RUN <<EOF
   set -e
@@ -9,16 +12,41 @@ RUN <<EOF
   apt install -y git curl python3 python-is-python3 lsb-release sudo xz-utils file
   apt clean
 
-  git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
-
   TZ=America/Los_Angeles
   ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
   echo $TZ > /etc/timezone
 EOF
 
-RUN fetch v8
+RUN <<EOF
+  set -e
 
-COPY --chmod=755 build.sh /work
-COPY --chmod=755 checkout-build.sh /work
+  cd /work
+  git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+  fetch v8
 
-ENV PATH $PATH
+  if [ -n "$COMMIT" ]
+    cd /work/v8
+    git checkout $COMMIT
+    COMMIT_DATE=$(git show -s -n 1 --format=%ci)
+    export DEPOT_TOOLS_UPDATE=0
+    git clean -ffd
+
+    cd /work/depot_tools
+    git checkout $(git rev-list -n 1 --before="$COMMIT_DATE" main)
+    git clean -ffd
+  fi
+
+  cd /work/v8
+
+  if [ -n "$COMMIT" ]
+    gclient sync -D --force --reset
+  else
+    gclient sync
+  fi
+
+  sed -i -e 's/${dev_list} snapcraft/${dev_list}/g' build/install-build-deps.sh
+  build/install-build-deps.sh
+  # tools/dev/gm.py x64.$BUILD_TYPE
+  tools/dev/v8gen.py x64.$BUILD_TYPE
+  ninja -C out.gn/x64.$BUILD_TYPE d8
+EOF
