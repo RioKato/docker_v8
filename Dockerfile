@@ -1,5 +1,5 @@
 FROM ubuntu:20.04
-ARG BUILD_TYPE="release"
+ARG MODE="release"
 ARG COMMIT
 
 WORKDIR /work
@@ -48,7 +48,6 @@ RUN <<EOF
 
   sed -i -e 's/${dev_list} snapcraft/${dev_list}/g' build/install-build-deps.sh
   echo y | build/install-build-deps.sh
-  # tools/dev/gm.py x64.$BUILD_TYPE
-  tools/dev/v8gen.py x64.$BUILD_TYPE
-  ninja -C out.gn/x64.$BUILD_TYPE d8
+  tools/dev/v8gen.py x64.$MODE
+  ninja -C out.gn/x64.$MODE d8
 EOF
